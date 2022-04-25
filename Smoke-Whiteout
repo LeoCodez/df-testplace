@@ -1,0 +1,106 @@
+-- local script
+
+local uid = game:GetService("UserInputService")
+local CD = false
+
+local debounce = false
+
+local fly = false
+local WPressed = false
+local SPressed = false
+local DPressed = false
+local APressed = false
+
+uid.InputBegan:Connect(function(Input, Typing)
+	if Typing then
+		return
+	else
+		if Input.KeyCode == Enum.KeyCode.E and CD == false then
+			local animation = script.whiteout.Animation
+			CD = true
+			local player = game.Players.LocalPlayer
+			local character = player.Character
+			local humanoid = character:FindFirstChild("Humanoid")
+			local ogspeed = humanoid.WalkSpeed
+			local anim = character:FindFirstChild("Humanoid"):LoadAnimation(animation)
+			anim.Priority = "Action"
+			anim:Play()
+			humanoid.WalkSpeed = 3
+			script.WhiteOut:FireServer()
+			
+			wait(4)
+			humanoid.WalkSpeed = ogspeed
+			anim:Stop()
+			
+			CD = false
+		end
+	end
+end)
+
+-- serverscript
+
+script.Parent.WhiteOut.OnServerEvent:Connect(function(player)
+	local whiteout = script.Parent.whiteout.WhiteOutHitbox:Clone()
+	whiteout.Parent = game.Workspace
+	whiteout.Anchored = false
+	whiteout.CanCollide = false 
+	whiteout.Position = player.Character.LeftHand.Position
+	whiteout.CFrame = player.Character.LeftHand.CFrame*CFrame.new(0,-22.5,0)
+	whiteout.Orientation = player.Character.LeftHand.Orientation
+	whiteout.WeldConstraint.Part0 = player.Character.LeftHand
+	whiteout.WeldConstraint.Part1 = whiteout
+	
+	local animation = script.Animation
+	local character = player.Character
+	local humanoid = character:FindFirstChild("Humanoid")
+	local anim = character:FindFirstChild("Humanoid"):LoadAnimation(animation)
+	anim.Priority = "Action"
+	anim:Play()
+	
+	
+	local hitnames = {}
+	whiteout.Touched:Connect(function(hit)
+		if hit.Parent:FindFirstChild("Humanoid") or hit.Parent.Parent:FindFirstChild("Humanoid") then
+			if hit.Parent.Name ~= player.Character.Name or hit.Parent.Parent.Name ~= player.Character.Name then
+				
+				for index, value in ipairs(hitnames) do
+					if value == hit.Parent.Name then
+						warn("this guy already got hit")
+						return
+					end
+				end
+				
+				if hitnames ~= hit.Parent.Name and hit.Parent:IsA("Model") then
+					
+					table.insert(hitnames,1, hit.Parent.Name)
+					print(hitnames)
+					local humanoid = hit.Parent:FindFirstChild("Humanoid") or hit.Parent.Parent:FindFirstChild("Humanoid")
+					local speed = humanoid.WalkSpeed
+					local Jump = humanoid.JumpPower
+					local Hip = humanoid.HipHeight
+					humanoid.WalkSpeed = 0
+					humanoid.JumpPower = 0
+					humanoid.HipHeight = 6
+					
+					wait(6)
+
+					humanoid.WalkSpeed = 16
+					humanoid.JumpPower = 50
+					humanoid.HipHeight = 2
+					print("a")
+					hitnames = {}
+
+				end
+				
+			end
+		end
+	end)
+	
+	wait(4)
+	whiteout:Destroy()
+	anim:Stop()
+	
+	
+end)
+
+-- make a whiteout folder inside the script, a whiteout hitbox, animation, and a remote event inside the local script. also put the serverscript inside the locla script. 
